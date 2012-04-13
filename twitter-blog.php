@@ -229,8 +229,6 @@ class twitter_blog {
 
 	function check_twitter_comments()
 	{
-		$start = microtime(true);
-
 		$tweets_added = 0;
 
 		//Only search for tweets if turned on
@@ -295,10 +293,6 @@ class twitter_blog {
 			}
 		}
 
-		$end = microtime(true);
-
-		file_put_contents('/tmp/twitterblog.txt', $end-$start);
-
 		return $tweets_added;
 	}
 
@@ -337,8 +331,10 @@ class twitter_blog {
 			foreach($json as $tweet)
 			{
 				//Checks to see if the current Tweet ID is higher than the current stored. Used to save on API calls.
-				if($tweet->id_str > $last_tweet_blog_post_checked_id)
+				if($tweet->id_str > $last_tweet_blog_post_checked_id) {
 					update_option( 'tb_last_tweet_blog_post_checked', $tweet->id_str);
+					$last_tweet_blog_post_checked_id = $tweet->id_str;
+				}
 
 				//Skip the tweet if it doesn't have the hashtag
 				if( !substr_count( $tweet->text, '#' . $this->create_blog_post_hashtag ) )
