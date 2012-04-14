@@ -272,10 +272,7 @@ class twitter_blog {
 				if(count($twitter_posts))
 				{
 					// Should only be one result and gets that info
-					foreach($twitter_posts as $temp_post_info)
-					{
-						$post_info = $temp_post_info;
-					}
+					$post_info = reset($twitter_posts);
 
 					// Check to see which Tweets have already been converted to comments
 					$comment_ids = get_post_meta($post_info->ID, '_twitter_comment_status_ids', true);
