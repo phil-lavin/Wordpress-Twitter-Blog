@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Twitter Blog - Phil's Mod
-Description: Twitter Blog will not only tweet your blog post, but it will also check hourly for replies to that tweet and turn it into a comment on that blog post. It also uses the <a href="http://bit.ly">bit.ly</a> API for URL shortening and adds link generated to your bit.ly account for tracking purposes. Tweets with a hashtag of #blog (customizable) will also be converted to a blog post. This is Phil's mod of the plugin.
+Description: Twitter Blog will not only tweet your blog post, but it will also check hourly for replies to that tweet and turn it into a comment on that blog post. It also uses the <a href="http:// bit.ly">bit.ly</a> API for URL shortening and adds link generated to your bit.ly account for tracking purposes. Tweets with a hashtag of #blog (customizable) will also be converted to a blog post. This is Phil's mod of the plugin.
 Version: 0.8.4.1
 Author: Chris Mielke / Modded By Phil Lavin
 */
@@ -11,10 +11,10 @@ Author: Chris Mielke / Modded By Phil Lavin
 // Modifications Copyright (c) 2012 Phil Lavin. All rights reserved.
 //
 // Released under the GPL license
-// http://www.opensource.org/licenses/gpl-license.php
+// http:// www.opensource.org/licenses/gpl-license.php
 //
 // This is an add-on for WordPress
-// http://wordpress.org/
+// http:// wordpress.org/
 //
 //
 // **********************************************************************
@@ -24,7 +24,7 @@ Author: Chris Mielke / Modded By Phil Lavin
 // **********************************************************************
 
 
-//For Twitter OAuth
+// For Twitter OAuth
 @session_start();
 if(!class_exists('TwitterOAuth'))
 {
@@ -54,18 +54,18 @@ class twitter_blog {
 
 	function twitter_blog()
 	{
-		//Gets Twitter username and password
+		// Gets Twitter username and password
 		$this->twitter_username = get_option( 'tb_twitter_username' );
 		$this->twitter_password = get_option( 'tb_twitter_password' );
 
 		$this->twitter_oauth_token = get_option( 'tb_twitter_oauth_token' );
 		$this->twitter_oauth_secret = get_option( 'tb_twitter_oauth_secret' );
 
-		//Gets bit.ly username and API key
+		// Gets bit.ly username and API key
 		$this->bitly_username = get_option( 'tb_bitly_username' );
 		$this->bitly_api_key = get_option( 'tb_bitly_api_key' );
 
-		//Twitter Blog Settings
+		// Twitter Blog Settings
 		$this->tweet_comment_option = get_option( 'tb_tweet_comments' );
 		$this->create_blog_post = get_option( 'tb_create_blog_post' );
 		$this->create_blog_post_hashtag = get_option( 'tb_create_blog_post_hashtag' );
@@ -79,13 +79,13 @@ class twitter_blog {
 		$this->analytics_source = get_option( 'tb_analytics_source' );
 		$this->analytics_medium = get_option( 'tb_analytics_medium' );
 
-		//Inserts Twitter OAuth info into the DB
+		// Inserts Twitter OAuth info into the DB
 		if(isset($_REQUEST['oauth_token']) && isset($_REQUEST['oauth_verifier']))
 		{
-			//Create TwitteroAuth object with app key/secret and token key/secret from default phase
+			// Create TwitteroAuth object with app key/secret and token key/secret from default phase
 			$connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);
 
-			//Request access tokens from twitter
+			// Request access tokens from twitter
 			$access_token = $connection->getAccessToken($_REQUEST['oauth_verifier']);
 
 			update_option( 'tb_twitter_oauth_token', $access_token['oauth_token']);
@@ -97,13 +97,13 @@ class twitter_blog {
 			header('Location: ' . $_SERVER['SCRIPT_NAME'] . '?page=twitter-blog-menu');
 		}
 
-		//Creates Twitter connection
+		// Creates Twitter connection
 		$this->twitter_con = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $this->twitter_oauth_token, $this->twitter_oauth_secret);
 	}
 
 	function install_twitter_blog()
 	{
-		//Sets the default settings
+		// Sets the default settings
 		update_option( 'tb_tweet_comments', 'on' );
 		update_option( 'tb_create_blog_post', 'on' );
 		update_option( 'tb_create_blog_post_hashtag', 'blog' );
@@ -155,13 +155,13 @@ class twitter_blog {
 				$post_link .= "utm_source={$this->analytics_source}&utm_medium={$this->analytics_medium}&utm_campaign={$post_name_url}";
 			}
 
-			//Get bit.ly URL if API is set
+			// Get bit.ly URL if API is set
 			$encoded_post_link = urlencode($post_link);
 
 			$bitly_options[CURLOPT_POSTFIELDS] = 'version=3.0&history=1&longUrl=' . $encoded_post_link . '&login=' . urlencode($this->bitly_username) . '&apiKey=' . urlencode($this->bitly_api_key);
 			$bitly_options[CURLOPT_RETURNTRANSFER] = true;
 
-			$bitly_curl = curl_init( 'http://api.bit.ly/v3/shorten' );
+			$bitly_curl = curl_init( 'http:// api.bit.ly/v3/shorten' );
 			curl_setopt_array($bitly_curl, $bitly_options);
 			$bitly_response = curl_exec($bitly_curl);
 
@@ -173,11 +173,11 @@ class twitter_blog {
 
 			curl_close($bitly_curl);
 
-			//Checks the status length is longer than 140, and shortens as needed.
+			// Checks the status length is longer than 140, and shortens as needed.
 			$status = $this->tweet_prefix . ' ' . strip_tags($post->post_title) . ' ' . $bitly_link . ' ' . $this->tweet_postfix;
 			$status = (strlen($status) <= 140) ? $status : $this->tweet_prefix . ' ' . substr(strip_tags($post->post_title), 0, (-(strlen($status) - 137)))  . '... ' . $bitly_link . ' ' . $this->twitter_postfix;
 
-			//Updated status
+			// Updated status
 			$twitter = $this->twitter_con->post( 'statuses/update',  array('status' => $status));
 
 			$this->update_post_twitter_id($post_id, $twitter->id_str);
@@ -189,22 +189,22 @@ class twitter_blog {
 
 	function insert_twitter_comment($tweet, $post_id)
 	{
-		//Gets time for comment
+		// Gets time for comment
 		$time = date( 'Y-m-d H:i:s', strtotime($tweet->created_at));
 
-		//Creates comment array
+		// Creates comment array
 		$data = array(
 			'comment_post_ID' => $post_id,
 			'comment_author' => '@' . $tweet->user->screen_name,
 			'comment_author_email' => '',
-			'comment_author_url' => 'http://twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str,
+			'comment_author_url' => 'http:// twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str,
 			'comment_content' => $this->comment_prefix . ' ' . trim(str_ireplace( '@' . $this->twitter_username, '', $tweet->text)),
 			'comment_type' => 'comment',
 			'comment_parent' => 0,
 			'user_ID' => 0,
 		);
 
-		//Inserts the tweet as a comment
+		// Inserts the tweet as a comment
 		$comment_ID = wp_new_comment($data);
 
 		// Sets meta data on the comment to note it's a tweet
@@ -219,10 +219,10 @@ class twitter_blog {
 			wp_notify_postauthor($comment_ID, $data['comment_type']);
 
 
-		//Sends a direct message to commenter if allowed
+		// Sends a direct message to commenter if allowed
 		if( $this->send_dm_confirmation == 'on' )
 		{
-			//Send DM
+			// Send DM
 			$twitter = $this->twitter_con->post( 'direct_messages/new',  array('text' => 'Your tweet has been added as a comment to @' . $this->twitter_username . '\'s blog - ' . get_permalink( $post_id ), 'screen_name' => $tweet->user->screen_name));
 		}
 	}
@@ -231,10 +231,10 @@ class twitter_blog {
 	{
 		$tweets_added = 0;
 
-		//Only search for tweets if turned on
+		// Only search for tweets if turned on
 		if($this->tweet_comment_option == 'on' )
 		{
-			//Searches Twitter for mentions of the user.
+			// Searches Twitter for mentions of the user.
 			$options[CURLOPT_USERPWD] = $this->twitter_username . ':' . $this->twitter_password;
 			$options[CURLOPT_RETURNTRANSFER] = true;
 
@@ -261,13 +261,13 @@ class twitter_blog {
 
 			foreach($json as $tweet)
 			{
-				//Checks to see if the current Tweet ID is higher than the current stored. Used to save on API calls.
+				// Checks to see if the current Tweet ID is higher than the current stored. Used to save on API calls.
 				if($tweet->id_str > $last_tweet_checked_id) {
 					update_option('tb_last_tweet_checked', $tweet->id_str);
 					$last_tweet_checked_id = $tweet->id_str;
 				}
 
-				//Checks to make sure a reply ID is set
+				// Checks to make sure a reply ID is set
 				if(empty($tweet->in_reply_to_status_id_str))
 					continue;
 
@@ -275,13 +275,13 @@ class twitter_blog {
 
 				if(count($twitter_posts) >= 1)
 				{
-					//Should only be one result and gets that info
+					// Should only be one result and gets that info
 					foreach($twitter_posts as $temp_post_info)
 					{
 						$post_info = $temp_post_info;
 					}
 
-					//Check to see which Tweets have already been converted to comments
+					// Check to see which Tweets have already been converted to comments
 					$comment_ids = get_post_meta($post_info->ID, '_twitter_comment_status_ids', true);
 					$comment_array = explode( ',', $comment_ids);
 					if(!in_array($tweet->id_str, $comment_array) || count($comment_array) == 0)
@@ -290,10 +290,10 @@ class twitter_blog {
 
 						$this->update_comment_twitter_ids($post_info->ID, $update_ids);
 
-						//Inserts the Tweet as a comment
+						// Inserts the Tweet as a comment
 						$this->insert_twitter_comment($tweet, $post_info->ID);
 
-						//Increments the number of tweets that have been added.
+						// Increments the number of tweets that have been added.
 						$tweets_added++;
 					}
 				}
@@ -303,22 +303,22 @@ class twitter_blog {
 		return $tweets_added;
 	}
 
-	//Checks Twitter for any tweets that should be converted to blog posts via the hashtag
+	// Checks Twitter for any tweets that should be converted to blog posts via the hashtag
 	function check_twitter_blog_posts()
 	{
-		//Only search for tweets if turned on
+		// Only search for tweets if turned on
 		if($this->create_blog_post == 'on' )
 		{
-			//Counts the number of posts that were created
+			// Counts the number of posts that were created
 			$posts_created = 0;
 
-			//Checks to see if a "Twitter" category is already created
+			// Checks to see if a "Twitter" category is already created
 			$twitter_cat_id = get_cat_ID( 'Twitter' );
 			if( $twitter_cat_id == 0)
-				//Creates the Category
+				// Creates the Category
 				$twitter_cat_id =  wp_create_category( 'Twitter' );
 
-			//Searches Twitter for mentions of the user.
+			// Searches Twitter for mentions of the user.
 			$options[CURLOPT_USERPWD] = $this->twitter_username . ':' . $this->twitter_password;
 			$options[CURLOPT_RETURNTRANSFER] = true;
 
@@ -327,7 +327,7 @@ class twitter_blog {
 				'count' => 200
 			);
 
-			//Will reduce the amount of tweets that were grabbed to save on API calls
+			// Will reduce the amount of tweets that were grabbed to save on API calls
 			$last_tweet_blog_post_checked_id = get_option( 'tb_last_tweet_blog_post_checked' );
 
 			// Set since_id?
@@ -344,41 +344,41 @@ class twitter_blog {
 
 			foreach($json as $tweet)
 			{
-				//Checks to see if the current Tweet ID is higher than the current stored. Used to save on API calls.
+				// Checks to see if the current Tweet ID is higher than the current stored. Used to save on API calls.
 				if($tweet->id_str > $last_tweet_blog_post_checked_id) {
 					update_option( 'tb_last_tweet_blog_post_checked', $tweet->id_str);
 					$last_tweet_blog_post_checked_id = $tweet->id_str;
 				}
 
-				//Skip the tweet if it doesn't have the hashtag
+				// Skip the tweet if it doesn't have the hashtag
 				if( !substr_count( $tweet->text, '#' . $this->create_blog_post_hashtag ) )
 					continue;
 
-				//Checks to see if the tweet has already been converted
+				// Checks to see if the tweet has already been converted
 				$checked_tweet_id_list = get_option( 'tb_created_blog_post_twitter_ids' );
 				if( in_array( $tweet->id_str, explode( ',', $checked_tweet_id_list ) ) )
 					continue;
 				else
 					update_option( 'tb_created_blog_post_twitter_ids', $checked_tweet_id_list . ',' . $tweet->id_str);
 
-				//Strips out the hashtag out of the tweet
+				// Strips out the hashtag out of the tweet
 				$tweet_text = str_replace( '#' . $this->create_blog_post_hashtag, '', $tweet->text );
 
-				//Posts the Tweet
+				// Posts the Tweet
 				$my_post = array();
 				$my_post['post_title'] = 'Twitter: ' . $tweet_text;
-				$my_post['post_content'] = '<p><img src="' . $tweet->user->profile_image_url . '" class="alignleft" /><a href="http://twitter.com/' . $tweet->user->screen_name . '"><strong>' . $tweet->user->screen_name . '</strong></a> ' . $tweet_text . '</p><p>[<a href="http://twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str . '">Source</a>]' ;
+				$my_post['post_content'] = '<p><img src="' . $tweet->user->profile_image_url . '" class="alignleft" /><a href="http:// twitter.com/' . $tweet->user->screen_name . '"><strong>' . $tweet->user->screen_name . '</strong></a> ' . $tweet_text . '</p><p>[<a href="http:// twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str . '">Source</a>]' ;
 				$my_post['post_status'] = 'publish';
 				$my_post['post_author'] = 1;
 				$my_post['post_category'] = array($twitter_cat_id);
 
-				//Do not tweet this post on publish
+				// Do not tweet this post on publish
 				$this->tweet_post = false;
 
 				// Insert the post into the database
 				$post_id = wp_insert_post( $my_post );
 
-				//Reset it back to true
+				// Reset it back to true
 				$this->tweet_post = true;
 
 				$this->update_post_twitter_id($post_id, $tweet->id_str);
@@ -391,13 +391,13 @@ class twitter_blog {
 		return $posts_created;
 	}
 
-	//Checks to make sure the twitter credentials authenticate
+	// Checks to make sure the twitter credentials authenticate
 	function verify_twitter_login()
 	{
-		//Verifies the user has logged in
+		// Verifies the user has logged in
 		$json = $this->twitter_con->get('account/verify_credentials');
 
-		//Checks if an error message was returned
+		// Checks if an error message was returned
 		if(isset($json->error))
 		{
 			echo('<div class="error"><p><strong>Twitter Blog Plugin</strong>Twitter Authentication Error: ' . $json->error . ' <a href="options-general.php?page=twitter-blog-menu">Settings Page</a><br />
@@ -410,20 +410,20 @@ class twitter_blog {
 		}
 	}
 
-	//Checks to make sure the bit.ly credentials authenticate
+	// Checks to make sure the bit.ly credentials authenticate
 	function verify_bitly_login()
 	{
-		//Get bit.ly URL if API is set
-		$bitly_options[CURLOPT_POSTFIELDS] = 'version=2.0.1&longUrl=http://www.google.com&login=' . $this->bitly_username . '&apiKey=' . $this->bitly_api_key;
+		// Get bit.ly URL if API is set
+		$bitly_options[CURLOPT_POSTFIELDS] = 'version=2.0.1&longUrl=http:// www.google.com&login=' . $this->bitly_username . '&apiKey=' . $this->bitly_api_key;
 		$bitly_options[CURLOPT_RETURNTRANSFER] = true;
 
-		$bitly_curl = curl_init( 'http://api.bit.ly/shorten' );
+		$bitly_curl = curl_init( 'http:// api.bit.ly/shorten' );
 		curl_setopt_array($bitly_curl, $bitly_options);
 		$bitly_response = curl_exec($bitly_curl);
 
 		$bitly = json_decode($bitly_response);
 
-		//Checks if an error message was returned
+		// Checks if an error message was returned
 		if(!empty($bitly->errorMessage))
 		{
 			echo('<div class="error"><p><strong>Twitter Blog Plugin</strong> Bit.ly Authentication Failed. Please try check your Username (case sensitive) and API Key. <a href="options-general.php?page=twitter-blog-menu">Settings Page</a></p></div>');
@@ -445,10 +445,10 @@ class twitter_blog {
 		wp_clear_scheduled_hook( 'hourly_twitter_blog_post_search' );
 	}
 
-	//Runs at the top of every admin page.
+	// Runs at the top of every admin page.
 	function admin_auth_check()
 	{
-		//If the Authentication check either failed or hasn't been done, run it
+		// If the Authentication check either failed or hasn't been done, run it
 		if(($this->auth_checked == 'false' || !$this->auth_checked) && (substr_count( $_SERVER['REQUEST_URI'], 'options-general.php?page=twitter-blog-menu' ) == 0 ))
 		{
 			if($this->verify_twitter_login() && $this->verify_bitly_login())
@@ -463,7 +463,7 @@ class twitter_blog {
 			}
 		}
 
-		//Checks version of PHP
+		// Checks version of PHP
 		list($ver_major, $ver_minor, $ver_release) = explode('.', phpversion());
 
 		if($ver_major < 5)
@@ -492,7 +492,7 @@ class twitter_blog {
 
 			if(isset($_POST['submit']) && $_POST['submit'] == 'Update Options' )
 			{
-				//Updates Twitter Settings
+				// Updates Twitter Settings
 				update_option( 'tb_twitter_username', $_POST['twitter_username']);
 				$this->twitter_username = $_POST['twitter_username'];
 				if(!empty($_POST['twitter_password']))
@@ -500,14 +500,14 @@ class twitter_blog {
 					update_option( 'tb_twitter_password', $_POST['twitter_password'] );
 				}
 
-				//Updates Bit.ly settings
+				// Updates Bit.ly settings
 				update_option( 'tb_bitly_username', trim($_POST['bitly_username']));
 				$this->bitly_username = trim($_POST['bitly_username']);
 
 				update_option( 'tb_bitly_api_key', trim($_POST['bitly_api_key']));
 				$this->bitly_api_key = trim($_POST['bitly_api_key']);
 
-				//Updates Twitter Blog Settings
+				// Updates Twitter Blog Settings
 				update_option( 'tb_tweet_prefix', trim($_POST['tweet_prefix']));
 				$this->tweet_prefix = trim($_POST['tweet_prefix']);
 
@@ -552,7 +552,7 @@ class twitter_blog {
 					echo( '<p class="updated">No blog posts were created from your tweets.</p>' );
 			}
 
-			//Tests Twitter Login & Bit.ly login
+			// Tests Twitter Login & Bit.ly login
 			$this->auth_checked = false;
 			if($this->verify_twitter_login() && $this->verify_bitly_login())
 			{
@@ -565,10 +565,10 @@ class twitter_blog {
 				update_option( 'tb_auth_checked', 'false' );
 			}
 
-			//Checks if password is set for displaying
+			// Checks if password is set for displaying
 			$password_set = (!empty($this->twitter_password)) ? '' : '<span style="color: red;">Please set password</span>';
 
-			//Checks the box for whether to Create comments from tweet replies.
+			// Checks the box for whether to Create comments from tweet replies.
 			$tweet_comment_checkbox = ($this->tweet_comment_option == 'on' ) ? ' checked="checked"' : '';
 			$create_blog_post_checkbox = ($this->create_blog_post == 'on' ) ? ' checked="checked"' : '';
 			$send_dm_checkbox = ($this->send_dm_confirmation == 'on' ) ? ' checked="checked"' : '';
@@ -576,7 +576,7 @@ class twitter_blog {
 			$twitter = $this->twitter_con->get('account/verify_credentials');
 			if(isset($twitter->error))
 			{
-				echo( '<a href="' . WP_PLUGIN_URL . '/twitter-blog/redirect.php?callback=' . urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) . '"><img src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter"/></a>' );
+				echo( '<a href="' . WP_PLUGIN_URL . '/twitter-blog/redirect.php?callback=' . urlencode('http:// ' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) . '"><img src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter"/></a>' );
 			}
 			else
 			{
@@ -586,7 +586,7 @@ class twitter_blog {
 				</p>
 				<p>
 					<strong>Login with a different twitter account</strong><br />
-					<a href="' . WP_PLUGIN_URL . '/twitter-blog/redirect.php?callback=' . urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) . '"><img src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter"/></a>
+					<a href="' . WP_PLUGIN_URL . '/twitter-blog/redirect.php?callback=' . urlencode('http:// ' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) . '"><img src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter"/></a>
 				</p>');
 			}
 
@@ -597,7 +597,7 @@ class twitter_blog {
 				</p>
 				<p>
 					<label for="bitly_api_key"><strong>bit.ly API Key</strong></label><br />
-					<small>Register for an account at <a href="http://bit.ly">bit.ly</a> and find your API Key on the <a href="http://bit.ly/account/">Acounts</a> page.</small><br />
+					<small>Register for an account at <a href="http:// bit.ly">bit.ly</a> and find your API Key on the <a href="http:// bit.ly/account/">Acounts</a> page.</small><br />
 					<input type="text" size="40" name="bitly_api_key" value="' . $this->bitly_api_key . '" />
 				</p>
 				<h3>Twitter Blog Settings</h3>
@@ -659,9 +659,9 @@ class twitter_blog {
 	}
 }
 
-//Set up Twitter Blog menu
+// Set up Twitter Blog menu
 
-//Creates the hooks and actions.
+// Creates the hooks and actions.
 if(class_exists( 'twitter_blog' ))
 {
 	$plugin_twitter_blog = new twitter_blog();
