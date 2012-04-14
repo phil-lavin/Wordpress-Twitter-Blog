@@ -269,7 +269,7 @@ class twitter_blog {
 
 				$twitter_posts = get_posts( 'meta_key=_twitter_status_id&meta_value=' . $tweet->in_reply_to_status_id_str);
 
-				if(count($twitter_posts) >= 1)
+				if(count($twitter_posts))
 				{
 					// Should only be one result and gets that info
 					foreach($twitter_posts as $temp_post_info)
