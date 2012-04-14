@@ -254,15 +254,15 @@ class twitter_blog {
 
 			foreach($json as $tweet)
 			{
-				//Checks to make sure a reply ID is set
-				if(empty($tweet->in_reply_to_status_id_str))
-					continue;
-
 				//Checks to see if the current Tweet ID is higher than the current stored. Used to save on API calls.
 				if($tweet->id_str > $last_tweet_checked_id) {
 					update_option('tb_last_tweet_checked', $tweet->id_str);
 					$last_tweet_checked_id = $tweet->id_str;
 				}
+
+				//Checks to make sure a reply ID is set
+				if(empty($tweet->in_reply_to_status_id_str))
+					continue;
 
 				$twitter_posts = get_posts( 'meta_key=_twitter_status_id&meta_value=' . $tweet->in_reply_to_status_id_str);
 
