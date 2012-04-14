@@ -161,7 +161,7 @@ class twitter_blog {
 			$bitly_options[CURLOPT_POSTFIELDS] = 'version=3.0&history=1&longUrl=' . $encoded_post_link . '&login=' . urlencode($this->bitly_username) . '&apiKey=' . urlencode($this->bitly_api_key);
 			$bitly_options[CURLOPT_RETURNTRANSFER] = true;
 
-			$bitly_curl = curl_init( 'http:// api.bit.ly/v3/shorten' );
+			$bitly_curl = curl_init( 'http://api.bit.ly/v3/shorten' );
 			curl_setopt_array($bitly_curl, $bitly_options);
 			$bitly_response = curl_exec($bitly_curl);
 
