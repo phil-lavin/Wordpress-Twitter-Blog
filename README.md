@@ -18,6 +18,7 @@ First Phil's mod release. Changes as follows:
 * When updating tb_last_tweet_blog_post_checked, remember what we updated it to else it'll be an invalid value when multiple tweets are being processed
 * Pass count param (200) to statuses/user_timeline when we're using a since_id rather than just when we're not
 * Implement dirty remove_wp_magic_quotes() function as Wordpress core seems to auto escape request data regardless of magic_quotes setting. Ew.
+* Moved tb_last_tweet_checked check above the continue to avoid unecessary excess work
 
 ### New Features ###
 
@@ -33,6 +34,8 @@ First Phil's mod release. Changes as follows:
 * Removed slack white space from twitter-blog.php
 * Removed redundant/invalid params in the $data array passed to wp_new_comment()
 * Removed a bunch of debug code
+* Tidied up implementation of params passed into api calls
+* Added one WS after comment //. It annoyed me :(
 
 0.8.4
 -----
