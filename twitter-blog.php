@@ -41,6 +41,7 @@ class twitter_blog {
 	var $bitly_api_key;
 
 	var $tweet_comment_option;
+	var $retweet_comment_option;
 	var $create_blog_post;
 	var $create_blog_post_hashtag;
 	var $tweet_prefix;
@@ -67,6 +68,7 @@ class twitter_blog {
 
 		// Twitter Blog Settings
 		$this->tweet_comment_option = get_option( 'tb_tweet_comments' );
+		$this->retweet_comment_option = get_option( 'tb_retweet_comments' );
 		$this->create_blog_post = get_option( 'tb_create_blog_post' );
 		$this->create_blog_post_hashtag = get_option( 'tb_create_blog_post_hashtag' );
 		$this->send_dm_confirmation = get_option( 'tb_send_dm_confirmation' );
@@ -105,6 +107,7 @@ class twitter_blog {
 	{
 		// Sets the default settings
 		update_option( 'tb_tweet_comments', 'on' );
+		update_option( 'tb_retweet_comments', 'on' );
 		update_option( 'tb_create_blog_post', 'on' );
 		update_option( 'tb_create_blog_post_hashtag', 'blog' );
 		update_option( 'tb_send_dm_confirmation', 'on' );
@@ -294,6 +297,47 @@ class twitter_blog {
 					}
 				}
 			}
+		}
+		// Only search for retweets if turned on
+		if($this->retweet_comment_option == 'on' ) {
+			// Default retweets_of_me options
+			$retweets_of_me_params = array(
+				'count' => 40
+			);
+
+			// Get retweeted tweets
+			$json = $this->twitter_con->get( 'statuses/retweets_of_me', $retweets_of_me_params);
+
+			if(isset($json->error))
+			{
+				echo('<p class="error">' . $json->error . '</p>');
+
+				return $tweets_added;
+			}
+
+			foreach ($json as $tweet) {
+				$twitter_posts = get_posts( 'meta_key=_twitter_status_id&meta_value=' . $tweet->id_str);
+
+				if (count($twitter_posts)) {
+					// Assume one item
+					$post_info = reset($twitter_posts);
+
+					// Get stored retweet count for this post
+					$retweet_count = (int)get_post_meta($post_info->ID, 'tb_retweet_count', true);
+
+					// If there's new reweets
+					if ($tweet->retweet_count > $retweet_count) {
+						// Default retweeted_by params
+						$retweeted_by_params = array(
+							'id' => $tweet->id_str,
+							'count' => 100
+						);
+
+						
+					}
+				}
+			}
+
 		}
 
 		return $tweets_added;
@@ -512,6 +556,9 @@ class twitter_blog {
 				update_option( 'tb_tweet_comments', $_POST['tweet_comments']);
 				$this->tweet_comment_option = $_POST['tweet_comments'];
 
+				update_option( 'tb_retweet_comments', $_POST['retweet_comments']);
+				$this->retweet_comment_option = $_POST['retweet_comments'];
+
 				update_option( 'tb_create_blog_post', $_POST['create_blog_post']);
 				$this->create_blog_post = $_POST['create_blog_post'];
 
@@ -562,6 +609,7 @@ class twitter_blog {
 
 			// Checks the box for whether to Create comments from tweet replies.
 			$tweet_comment_checkbox = ($this->tweet_comment_option == 'on' ) ? ' checked="checked"' : '';
+			$retweet_comment_checkbox = ($this->retweet_comment_option == 'on' ) ? ' checked="checked"' : '';
 			$create_blog_post_checkbox = ($this->create_blog_post == 'on' ) ? ' checked="checked"' : '';
 			$send_dm_checkbox = ($this->send_dm_confirmation == 'on' ) ? ' checked="checked"' : '';
 
@@ -611,6 +659,9 @@ class twitter_blog {
 				</p>
 				<p>
 					 <input type="checkbox" name="tweet_comments"' . $tweet_comment_checkbox  . ' /> <label for="tweet_comments"><strong>Create comments from Tweet replies.</strong></label>
+				</p>
+				<p>
+					 <input type="checkbox" name="retweet_comments"' . $retweet_comment_checkbox  . ' /> <label for="retweet_comments"><strong>Create comments from retweets.</strong></label>
 				</p>
 				<p>
 					<input type="checkbox" name="create_blog_post"' . $create_blog_post_checkbox  . ' /> <label for="create_blog_post"><strong>Create blog post from Tweets.</strong></label>
