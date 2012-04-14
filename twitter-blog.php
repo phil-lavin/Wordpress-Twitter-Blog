@@ -234,13 +234,9 @@ class twitter_blog {
 		// Only search for tweets if turned on
 		if($this->tweet_comment_option == 'on' )
 		{
-			// Searches Twitter for mentions of the user.
-			$options[CURLOPT_USERPWD] = $this->twitter_username . ':' . $this->twitter_password;
-			$options[CURLOPT_RETURNTRANSFER] = true;
-
-			// Default twitter options
+			// Default mention options
 			$mention_params = array(
-				'count' => 200,
+				'count' => 200
 			);
 
 			// Will reduce the amount of tweets that were grabbed to save on API calls
@@ -317,10 +313,6 @@ class twitter_blog {
 			if( $twitter_cat_id == 0)
 				// Creates the Category
 				$twitter_cat_id =  wp_create_category( 'Twitter' );
-
-			// Searches Twitter for mentions of the user.
-			$options[CURLOPT_USERPWD] = $this->twitter_username . ':' . $this->twitter_password;
-			$options[CURLOPT_RETURNTRANSFER] = true;
 
 			// Default user_timeline options
 			$timeline_params = array(
