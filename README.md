@@ -36,6 +36,7 @@ First Phil's mod release. Changes as follows:
 * Removed a bunch of debug code
 * Tidied up implementation of params passed into api calls
 * Added one WS after comment //. It annoyed me :(
+* Removed legacy (I presume) curl $options array
 
 0.8.4
 -----
