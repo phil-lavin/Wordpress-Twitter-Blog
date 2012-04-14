@@ -238,12 +238,19 @@ class twitter_blog {
 			$options[CURLOPT_USERPWD] = $this->twitter_username . ':' . $this->twitter_password;
 			$options[CURLOPT_RETURNTRANSFER] = true;
 
-			//Will reduce the amount of tweets that were grabbed to save on API calls
-			$last_tweet_checked_id = get_option( 'tb_last_tweet_checked' );
-			$last_tweet_checked_array = ( $last_tweet_checked_id ) ? array( 'since_id' => $last_tweet_checked_id, 'count' => 200) : array('count' => 200);
+			// Default twitter options
+			$mention_params = array(
+				'count' => 200,
+			);
 
-			//Gets all mentions of user since last check
-			$json = $this->twitter_con->get( 'statuses/mentions',  $last_tweet_checked_array);
+			// Will reduce the amount of tweets that were grabbed to save on API calls
+			$last_tweet_checked_id = get_option( 'tb_last_tweet_checked' );
+
+			// Include since_id?
+			if ($last_tweet_checked_id) $mention_params += array('since_id' => $last_tweet_checked_id);
+
+			// Gets all mentions of user since last check
+			$json = $this->twitter_con->get( 'statuses/mentions', $mention_params);
 
 			if(isset($json->error))
 			{
@@ -315,11 +322,18 @@ class twitter_blog {
 			$options[CURLOPT_USERPWD] = $this->twitter_username . ':' . $this->twitter_password;
 			$options[CURLOPT_RETURNTRANSFER] = true;
 
+			// Default user_timeline options
+			$timeline_params = array(
+				'count' => 200
+			);
+
 			//Will reduce the amount of tweets that were grabbed to save on API calls
 			$last_tweet_blog_post_checked_id = get_option( 'tb_last_tweet_blog_post_checked' );
-			$last_tweet_checked_array = ( $last_tweet_blog_post_checked_id ) ? array( 'since_id' => $last_tweet_blog_post_checked_id, 'count' => 200) : array('count' => 200);
 
-			$json = $this->twitter_con->get( 'statuses/user_timeline',  $last_tweet_checked_array );
+			// Set since_id?
+			if ($last_tweet_blog_post_checked_id) $timeline_params += array('since_id' => $last_tweet_blog_post_checked_id);
+
+			$json = $this->twitter_con->get( 'statuses/user_timeline', $timeline_params );
 
 			if(isset($json->error))
 			{
