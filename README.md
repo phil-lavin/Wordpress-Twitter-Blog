@@ -9,10 +9,10 @@ First Phil's mod release. Changes as follows:
 ### Fixes ###
 
 * URL encode the params passed to the bitly REST API. One of them is a URL... duh
-* Changed all references to twitter IDs to their _str brothers. This avoids floating point numbers being converted to standard form when stringified
+* Changed all references of twitter IDs to their _str brothers. This avoids floating point numbers being converted to standard form when stringified
 * Set the comment time to be the tweet time, not the current time. This seems to make more sense
 * Forcefully set the IP and user agent after the comment has been added, else it'll be that of the user who triggers the auto fetcher job
-* Forcefully mark comments as not approved post insert to avoid them being marked as spam by anti-spam plugins
+* Forcefully mark comments as not approved, post insert, to avoid them being marked as spam by anti-spam plugins
 * Pass count param (200) to statuses/mentions else it'll get the last 20 tweets from the mentions
 * When updating tb_last_tweet_checked, remember what we updated it to else it'll be an invalid value when multiple tweets are being processed
 * When updating tb_last_tweet_blog_post_checked, remember what we updated it to else it'll be an invalid value when multiple tweets are being processed
@@ -27,7 +27,7 @@ First Phil's mod release. Changes as follows:
 * Added Analytics (utm source, medium and campaign) tracking inc admin interface config settings
 * Changed to bitly API v3 as it's easier to use
 * Mark comments as tb_is_tweet with meta data. This can be used to distinguish twitter comments from regular comments in the template
-* Now uses your own app for better security
+* Use your own app for better security
 
 ### Tidying Up ###
 
