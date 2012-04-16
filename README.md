@@ -19,6 +19,7 @@ First Phil's mod release. Changes as follows:
 * Pass count param (200) to statuses/user_timeline when we're using a since_id rather than just when we're not
 * Implement dirty remove_wp_magic_quotes() function as Wordpress core seems to auto escape request data regardless of magic_quotes setting. Ew.
 * Moved tb_last_tweet_checked check above the continue to avoid unecessary excess work
+* Reinstated twitter_username as the code uses this to strip @you from the beginning of the tweet
 
 ### New Features ###
 
@@ -26,6 +27,7 @@ First Phil's mod release. Changes as follows:
 * Added Analytics (utm source, medium and campaign) tracking inc admin interface config settings
 * Changed to bitly API v3 as it's easier to use
 * Mark comments as tb_is_tweet with meta data. This can be used to distinguish twitter comments from regular comments in the template
+* Now uses your own app for better security
 
 ### Tidying Up ###
 
@@ -37,6 +39,10 @@ First Phil's mod release. Changes as follows:
 * Tidied up implementation of params passed into api calls
 * Added one WS after comment //. It annoyed me :(
 * Removed legacy (I presume) curl $options array
+* Removed redundant >= 1 on count()
+* Fixed retarded way of getting 1 item from array
+* Removed redundant connect.php
+* Removed redundant references to the twitter password
 
 0.8.4
 -----
