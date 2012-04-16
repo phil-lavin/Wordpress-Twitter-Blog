@@ -38,7 +38,6 @@ class twitter_blog {
 	var $consumer_secret;
 
 	var $twitter_username;
-	var $twitter_password;
 
 	var $bitly_username;
 	var $bitly_api_key;
@@ -88,7 +87,6 @@ class twitter_blog {
 
 		// Gets Twitter username and password
 		$this->twitter_username = get_option( 'tb_twitter_username' );
-		$this->twitter_password = get_option( 'tb_twitter_password' );
 
 		$this->twitter_oauth_token = get_option( 'tb_twitter_oauth_token' );
 		$this->twitter_oauth_secret = get_option( 'tb_twitter_oauth_secret' );
@@ -525,10 +523,6 @@ class twitter_blog {
 				// Updates Twitter Settings
 				update_option( 'tb_twitter_username', $_POST['twitter_username']);
 				$this->twitter_username = $_POST['twitter_username'];
-				if(!empty($_POST['twitter_password']))
-				{
-					update_option( 'tb_twitter_password', $_POST['twitter_password'] );
-				}
 
 				// Updates Bit.ly settings
 				update_option( 'tb_bitly_username', trim($_POST['bitly_username']));
@@ -594,9 +588,6 @@ class twitter_blog {
 				$this->auth_checked = false;
 				update_option( 'tb_auth_checked', 'false' );
 			}
-
-			// Checks if password is set for displaying
-			$password_set = (!empty($this->twitter_password)) ? '' : '<span style="color: red;">Please set password</span>';
 
 			// Checks the box for whether to Create comments from tweet replies.
 			$tweet_comment_checkbox = ($this->tweet_comment_option == 'on' ) ? ' checked="checked"' : '';
