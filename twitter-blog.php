@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Twitter Blog - Phil's Mod
-Description: Twitter Blog will not only tweet your blog post, but it will also check hourly for replies to that tweet and turn it into a comment on that blog post. It also uses the <a href="http:// bit.ly">bit.ly</a> API for URL shortening and adds link generated to your bit.ly account for tracking purposes. Tweets with a hashtag of #blog (customizable) will also be converted to a blog post. This is Phil's mod of the plugin.
+Description: Twitter Blog will not only tweet your blog post, but it will also check hourly for replies to that tweet and turn it into a comment on that blog post. It also uses the <a href="http://bit.ly">bit.ly</a> API for URL shortening and adds link generated to your bit.ly account for tracking purposes. Tweets with a hashtag of #blog (customizable) will also be converted to a blog post. This is Phil's mod of the plugin.
 Version: 0.8.4.1
 Author: Chris Mielke / Modded By Phil Lavin
 */
@@ -11,10 +11,10 @@ Author: Chris Mielke / Modded By Phil Lavin
 // Modifications Copyright (c) 2012 Phil Lavin. All rights reserved.
 //
 // Released under the GPL license
-// http:// www.opensource.org/licenses/gpl-license.php
+// http://www.opensource.org/licenses/gpl-license.php
 //
 // This is an add-on for WordPress
-// http:// wordpress.org/
+// http://wordpress.org/
 //
 //
 // **********************************************************************
@@ -25,14 +25,17 @@ Author: Chris Mielke / Modded By Phil Lavin
 
 
 // For Twitter OAuth
+ob_start();
 @session_start();
 if(!class_exists('TwitterOAuth'))
 {
 	require_once('twitteroauth/twitteroauth.php');
 }
-require_once('config.php');
 
 class twitter_blog {
+
+	var $consumer_key;
+	var $consumer_secret;
 
 	var $twitter_username;
 	var $twitter_password;
@@ -52,8 +55,37 @@ class twitter_blog {
 
 	public $tweet_post = true;
 
+	function do_oauth($callback)
+	{
+		/* Build TwitterOAuth object with client credentials. */
+		$connection = new TwitterOAuth($this->consumer_key, $this->consumer_secret);
+
+		/* Get temporary credentials. */
+		$request_token = $connection->getRequestToken($callback);
+
+		/* Save temporary credentials to session. */
+		$_SESSION['oauth_token'] = $token = $request_token['oauth_token'];
+		$_SESSION['oauth_token_secret'] = $request_token['oauth_token_secret'];
+
+		/* If last connection failed don't display authorization link. */
+		switch ($connection->http_code) {
+			case 200:
+				/* Build authorize URL and redirect user to Twitter. */
+				$url = $connection->getAuthorizeURL($token);
+				header('Location: ' . $url);
+				break;
+			default:
+				/* Show notification if something went wrong. */
+				echo 'Could not connect to Twitter. Refresh the page or try again later.';
+		}
+	}
+
 	function twitter_blog()
 	{
+		// Gets app settings
+		$this->consumer_key = get_option( 'tb_consumer_key' );
+		$this->consumer_secret = get_option( 'tb_consumer_secret' );
+
 		// Gets Twitter username and password
 		$this->twitter_username = get_option( 'tb_twitter_username' );
 		$this->twitter_password = get_option( 'tb_twitter_password' );
@@ -83,7 +115,7 @@ class twitter_blog {
 		if(isset($_REQUEST['oauth_token']) && isset($_REQUEST['oauth_verifier']))
 		{
 			// Create TwitteroAuth object with app key/secret and token key/secret from default phase
-			$connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);
+			$connection = new TwitterOAuth($this->consumer_key, $this->consumer_secret, $_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);
 
 			// Request access tokens from twitter
 			$access_token = $connection->getAccessToken($_REQUEST['oauth_verifier']);
@@ -98,7 +130,7 @@ class twitter_blog {
 		}
 
 		// Creates Twitter connection
-		$this->twitter_con = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $this->twitter_oauth_token, $this->twitter_oauth_secret);
+		$this->twitter_con = new TwitterOAuth($this->consumer_key, $this->consumer_secret, $this->twitter_oauth_token, $this->twitter_oauth_secret);
 	}
 
 	function install_twitter_blog()
@@ -197,7 +229,7 @@ class twitter_blog {
 			'comment_post_ID' => $post_id,
 			'comment_author' => '@' . $tweet->user->screen_name,
 			'comment_author_email' => '',
-			'comment_author_url' => 'http:// twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str,
+			'comment_author_url' => 'http://twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str,
 			'comment_content' => $this->comment_prefix . ' ' . trim(str_ireplace( '@' . $this->twitter_username, '', $tweet->text)),
 			'comment_type' => 'comment',
 			'comment_parent' => 0,
@@ -356,7 +388,7 @@ class twitter_blog {
 				// Posts the Tweet
 				$my_post = array();
 				$my_post['post_title'] = 'Twitter: ' . $tweet_text;
-				$my_post['post_content'] = '<p><img src="' . $tweet->user->profile_image_url . '" class="alignleft" /><a href="http:// twitter.com/' . $tweet->user->screen_name . '"><strong>' . $tweet->user->screen_name . '</strong></a> ' . $tweet_text . '</p><p>[<a href="http:// twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str . '">Source</a>]' ;
+				$my_post['post_content'] = '<p><img src="' . $tweet->user->profile_image_url . '" class="alignleft" /><a href="http://twitter.com/' . $tweet->user->screen_name . '"><strong>' . $tweet->user->screen_name . '</strong></a> ' . $tweet_text . '</p><p>[<a href="http://twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id_str . '">Source</a>]' ;
 				$my_post['post_status'] = 'publish';
 				$my_post['post_author'] = 1;
 				$my_post['post_category'] = array($twitter_cat_id);
@@ -389,8 +421,7 @@ class twitter_blog {
 		// Checks if an error message was returned
 		if(isset($json->error))
 		{
-			echo('<div class="error"><p><strong>Twitter Blog Plugin</strong>Twitter Authentication Error: ' . $json->error . ' <a href="options-general.php?page=twitter-blog-menu">Settings Page</a><br />
-				 <em>Note: As of version 0.8, Twitter authentication is done with OAuth. You will need to re-enter your login information.</em></p></div>');
+			echo('<div class="error"><p><strong>Twitter Blog Plugin</strong><br />Twitter Authentication Error: ' . $json->error . ' <a href="options-general.php?page=twitter-blog-menu">Settings Page</a><br />				 <em>Note: As of version 0.8, Twitter authentication is done with OAuth. You will need to re-enter your login information. Set up the below options first, as you\'ll need to specify the details of your app</em></p></div>');
 			return false;
 		}
 		else
@@ -403,10 +434,10 @@ class twitter_blog {
 	function verify_bitly_login()
 	{
 		// Get bit.ly URL if API is set
-		$bitly_options[CURLOPT_POSTFIELDS] = 'version=2.0.1&longUrl=http:// www.google.com&login=' . $this->bitly_username . '&apiKey=' . $this->bitly_api_key;
+		$bitly_options[CURLOPT_POSTFIELDS] = 'version=2.0.1&longUrl=http://www.google.com&login=' . $this->bitly_username . '&apiKey=' . $this->bitly_api_key;
 		$bitly_options[CURLOPT_RETURNTRANSFER] = true;
 
-		$bitly_curl = curl_init( 'http:// api.bit.ly/shorten' );
+		$bitly_curl = curl_init( 'http://api.bit.ly/shorten' );
 		curl_setopt_array($bitly_curl, $bitly_options);
 		$bitly_response = curl_exec($bitly_curl);
 
@@ -479,8 +510,18 @@ class twitter_blog {
 
 			wp_nonce_field( 'update-options' );
 
-			if(isset($_POST['submit']) && $_POST['submit'] == 'Update Options' )
+			if (isset($_POST['twitter_login']) || isset($_POST['twitter_login_x'])) {
+				$this->do_oauth('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']);
+			}
+			elseif(isset($_POST['submit']) && $_POST['submit'] == 'Update Options' )
 			{
+				// Updates App Settings
+				update_option( 'tb_consumer_key', $_POST['consumer_key']);
+				$this->consumer_key = $_POST['consumer_key'];
+
+				update_option( 'tb_consumer_secret', $_POST['consumer_secret']);
+				$this->consumer_secret = $_POST['consumer_secret'];
+
 				// Updates Twitter Settings
 				update_option( 'tb_twitter_username', $_POST['twitter_username']);
 				$this->twitter_username = $_POST['twitter_username'];
@@ -565,7 +606,11 @@ class twitter_blog {
 			$twitter = $this->twitter_con->get('account/verify_credentials');
 			if(isset($twitter->error))
 			{
-				echo( '<a href="' . WP_PLUGIN_URL . '/twitter-blog/redirect.php?callback=' . urlencode('http:// ' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) . '"><img src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter"/></a>' );
+				echo('
+					<form name="twitter_login" action="" method="post">
+						<input name="twitter_login" type="image" src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter" />
+					</form>
+				');
 			}
 			else
 			{
@@ -575,18 +620,29 @@ class twitter_blog {
 				</p>
 				<p>
 					<strong>Login with a different twitter account</strong><br />
-					<a href="' . WP_PLUGIN_URL . '/twitter-blog/redirect.php?callback=' . urlencode('http:// ' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) . '"><img src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter"/></a>
+					<form name="twitter_login" action="" method="post">
+						<input name="twitter_login" type="image" src="' . WP_PLUGIN_URL . '/twitter-blog/images/lighter.png" alt="Sign in with Twitter" />
+					</form>
 				</p>');
 			}
 
 			echo( '<form name="twitter_blog_settings" method="post" action="' . str_replace( '%7E', '~', $_SERVER['REQUEST_URI']) . '">
+				<h3><a href="https://dev.twitter.com/apps" target="_blank">Twitter App</a> Settings</h3>
+				<p>
+					<label for="consumer_key"><strong>Consumer Key</strong></label><br />
+					<input type="text" size="40" name="consumer_key" value="' . $this->consumer_key . '" />
+				</p>
+				<p>
+					<label for="consumer_secret"><strong>Consumer Secret</strong></label><br />
+					<input type="text" size="40" name="consumer_secret" value="' . $this->consumer_secret . '" />
+				</p>
 				<h3>bit.ly Settings</h3>
 				<p>
 					<label for="bitly_username"><strong>bit.ly Username</strong></label> <input type="text" size="40" name="bitly_username" value="' . $this->bitly_username . '" />
 				</p>
 				<p>
 					<label for="bitly_api_key"><strong>bit.ly API Key</strong></label><br />
-					<small>Register for an account at <a href="http:// bit.ly">bit.ly</a> and find your API Key on the <a href="http:// bit.ly/account/">Acounts</a> page.</small><br />
+					<small>Register for an account at <a href="http://bit.ly">bit.ly</a> and find your API Key on the <a href="http://bit.ly/account/">Acounts</a> page.</small><br />
 					<input type="text" size="40" name="bitly_api_key" value="' . $this->bitly_api_key . '" />
 				</p>
 				<h3>Twitter Blog Settings</h3>
