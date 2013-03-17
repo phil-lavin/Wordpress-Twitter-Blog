@@ -2,7 +2,7 @@
 /*
 Plugin Name: Twitter Blog - Phil's Mod
 Description: Twitter Blog will not only tweet your blog post, but it will also check hourly for replies to that tweet and turn it into a comment on that blog post. It also uses the <a href="http://bit.ly">bit.ly</a> API for URL shortening and adds link generated to your bit.ly account for tracking purposes. Tweets with a hashtag of #blog (customizable) will also be converted to a blog post. This is Phil's mod of the plugin.
-Version: 0.8.4.1
+Version: 0.8.4.2
 Author: Chris Mielke / Modded By Phil Lavin
 */
 
@@ -31,6 +31,9 @@ if(!class_exists('TwitterOAuth'))
 {
 	require_once('twitteroauth/twitteroauth.php');
 }
+
+//ini_set('display_errors', 'on');
+//error_reporting(-1);
 
 class twitter_blog {
 
@@ -257,8 +260,14 @@ class twitter_blog {
 		}
 	}
 
+	function time_sort($a, $b) {
+		return $b->id_str - $a->id_str;
+	}
+
 	function check_twitter_comments()
 	{
+		global $wpdb;
+
 		$tweets_added = 0;
 
 		// Only search for tweets if turned on
@@ -277,6 +286,13 @@ class twitter_blog {
 
 			// Gets all mentions of user since last check
 			$json = $this->twitter_con->get( 'statuses/mentions', $mention_params);
+
+			// Gets all of my tweets since last check and merge with mentions
+			$json2 = $this->twitter_con->get( 'statuses/user_timeline', $mention_params);
+			$json = array_merge($json, $json2);
+
+			// Sort the merged array by id
+			usort($json, array($this, 'time_sort'));
 
 			if(isset($json->error))
 			{
@@ -298,6 +314,34 @@ class twitter_blog {
 					continue;
 
 				$twitter_posts = get_posts( 'meta_key=_twitter_status_id&meta_value=' . $tweet->in_reply_to_status_id_str);
+
+				// If we don't have a post now, try replies of replies
+				if ( ! $twitter_posts) {
+					// Get posts where this tweet is in reply to a comment tweet
+					$querystr = "SELECT wposts.*, wpostmeta.*
+							FROM {$wpdb->posts} AS wposts
+							INNER JOIN {$wpdb->postmeta} AS wpostmeta
+							ON wpostmeta.post_id = wposts.ID
+							AND wpostmeta.meta_key = '_twitter_comment_status_ids'
+							AND wpostmeta.meta_value LIKE '%{$tweet->in_reply_to_status_id_str}%'";
+
+					$comment_reply_posts = $wpdb->get_results($querystr, OBJECT);
+
+					// Flush the DB cache so we can execute the same query and get different results
+					$wpdb->flush();
+
+					// Check that this is actually a token as LIKE isn't perfect
+					foreach ($comment_reply_posts as $key=>$comment_reply_post) {
+						$meta_comment_ids = explode(',', $comment_reply_post->meta_value);
+
+						if ( ! in_array($tweet->in_reply_to_status_id_str, $meta_comment_ids)) {
+							unset($comment_reply_posts[$key]);
+						}
+						else {
+							$twitter_posts = array(get_post($comment_reply_post->ID));
+						}
+					}
+				}
 
 				if(count($twitter_posts))
 				{

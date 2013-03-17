@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.8.4.2
+-------
+
+### New Features ###
+
+* Pulls in replies of replies (and replies of replies of replies, etc.) to create comments out of twitter conversations originating from a post
+
 0.8.4.1
 -------
 
