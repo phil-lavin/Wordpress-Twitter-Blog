@@ -327,6 +327,8 @@ class twitter_blog {
 
 					$comment_reply_posts = $wpdb->get_results($querystr, OBJECT);
 
+					//var_dump($querystr,$comment_reply_posts);
+
 					// Flush the DB cache so we can execute the same query and get different results
 					$wpdb->flush();
 
@@ -351,6 +353,10 @@ class twitter_blog {
 					// Check to see which Tweets have already been converted to comments
 					$comment_ids = get_post_meta($post_info->ID, '_twitter_comment_status_ids', true);
 					$comment_array = explode( ',', $comment_ids);
+
+					// Flush the cache or get_post_meta will cache :(
+					wp_cache_flush();
+
 					if(!in_array($tweet->id_str, $comment_array) || count($comment_array) == 0)
 					{
 						$update_ids = (strlen($comment_ids) > 0) ? $comment_ids . ',' . $tweet->id_str : $tweet->id_str;
@@ -359,6 +365,7 @@ class twitter_blog {
 
 						// Inserts the Tweet as a comment
 						$this->insert_twitter_comment($tweet, $post_info->ID);
+						//var_dump($tweet, $post_info->ID);
 
 						// Increments the number of tweets that have been added.
 						$tweets_added++;
